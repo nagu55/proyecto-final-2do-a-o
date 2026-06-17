@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Pelicula {
+  id           Int           @id @default(autoincrement())
+  titulo       String
+  director     String
+  anio         Int
+  genero       String
+  precio       Float         @default(0)
+  createdAt    DateTime      @default(now())
+  transacciones Transaccion[]
+}
+
+model Usuario {
+  id           Int           @id @default(autoincrement())
+  nombre       String
+  email        String        @unique
+  password     String
+  rol          String        @default("admin")
+  createdAt    DateTime      @default(now())
+  transacciones Transaccion[]
+}
+
+model Transaccion {
+  id         Int      @id @default(autoincrement())
+  tipo       String   // "alquiler" o "compra"
+  pelicula   Pelicula @relation(fields: [peliculaId], references: [id])
+  peliculaId Int
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId  Int
+  nombreCliente String
+  createdAt  DateTime @default(now())
+}
