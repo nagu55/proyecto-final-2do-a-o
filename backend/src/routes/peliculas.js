@@ -67,9 +67,13 @@ router.delete('/:id', async (req, res) => {
     })
     res.json({ mensaje: 'Película eliminada correctamente' })
   } catch (error) {
+    if (error.code === 'P2003') {
+      return res.status(400).json({
+        error: 'No se puede eliminar esta película porque tiene alquileres o compras registradas'
+      })
+    }
     res.status(500).json({ error: 'Error al eliminar la película' })
   }
 })
-
 module.exports = router
 

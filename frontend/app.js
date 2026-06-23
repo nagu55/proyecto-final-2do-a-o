@@ -246,13 +246,18 @@ function cancelarEdicion() {
 async function eliminarPelicula(id) {
   if (!confirm('¿Estás seguro de que querés eliminar esta película?')) return
 
-  await fetch(`${API_URL}/peliculas/${id}`, {
+  const respuesta = await fetch(`${API_URL}/peliculas/${id}`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${token}` }
   })
 
-  cargarTablaAdmin()
-  cargarCatalogo()
+  if (respuesta.ok) {
+    cargarTablaAdmin()
+    cargarCatalogo()
+  } else {
+    const datos = await respuesta.json()
+    alert(datos.error || 'Error al eliminar la película')
+  }
 }
 
 function limpiarFormulario() {
