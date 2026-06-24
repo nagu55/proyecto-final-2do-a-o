@@ -1,6 +1,15 @@
 # 🎬 CineApp - Gestión de Películas
 
-Sistema fullstack de gestión de películas con catálogo público, alquiler/compra y panel de administración.
+Sistema fullstack de gestión de películas con catálogo público, alquiler/compra y panel de administración protegido con autenticación.
+
+---
+
+## Alcance del proyecto
+
+Este repositorio combina dos sprints:
+
+- **Sprint 1:** CRUD básico de películas (crear, ver, editar, eliminar) con frontend y backend conectados.
+- **Sprint 2:** Sistema de roles — login de administrador con JWT, catálogo público para usuarios, y registro de alquileres/compras.
 
 ---
 
@@ -20,17 +29,35 @@ crud-peliculas/
 
 │   ├── src/
 
-│   │   ├── routes/
+│   │   ├── auth/
 
-│   │   │   ├── peliculas.js
+│   │   │   ├── firmarToken.js       # genera el JWT
+
+│   │   │   └── verificarToken.js    # middleware que valida el JWT
+
+│   │   ├── controllers/
+
+│   │   │   ├── authController.js
+
+│   │   │   ├── peliculasController.js
+
+│   │   │   └── transaccionesController.js
+
+│   │   ├── middlewares/
+
+│   │   │   └── validaciones.js      # validación de datos de entrada
+
+│   │   ├── routes/
 
 │   │   │   ├── auth.js
 
+│   │   │   ├── peliculas.js
+
 │   │   │   └── transacciones.js
 
-│   │   ├── middleware.js
-
 │   │   ├── crearAdmin.js
+
+│   │   ├── db.js                    # conexión única a Prisma
 
 │   │   └── index.js
 
@@ -44,14 +71,33 @@ crud-peliculas/
 
 ├── frontend/
 
+│   ├── api/
+
+│   │   ├── peliculasApi.js          # fetch al backend
+
+│   │   ├── authApi.js
+
+│   │   └── transaccionesApi.js
+
+│   ├── ui/
+
+│   │   ├── catalogoUI.js            # manipulación del DOM
+
+│   │   ├── adminUI.js
+
+│   │   └── modalesUI.js
+
+│   ├── utils/
+
+│   │   └── storage.js               # manejo del token en localStorage
+
+│   ├── main.js                      # conecta api + ui + eventos
+
 │   ├── index.html
 
-│   ├── style.css
-
-│   └── app.js
+│   └── style.css
 
 └── README.md
-
 ---
 
 ## Instrucciones de instalación
@@ -92,10 +138,6 @@ npx prisma generate
 node src/crearAdmin.js
 ```
 
-Esto crea el usuario admin con las siguientes credenciales:
-- **Email:** admin@peliculas.com
-- **Password:** admin123
-
 ---
 
 ## Instrucciones de ejecución
@@ -115,11 +157,20 @@ Abrir el archivo `frontend/index.html` directamente en el navegador (doble click
 
 ---
 
+## Credenciales de prueba
+
+Para acceder al panel de administrador, usar:
+
+- **Email:** admin@peliculas.com
+- **Password:** admin123
+
+---
+
 ## Descripción del sistema
 
 CineApp es un sistema de gestión de películas con dos tipos de acceso:
 
-### Vista pública (cualquier usuario)
+### Vista pública (cualquier usuario, sin necesidad de login)
 - Ver el catálogo de películas disponibles
 - Alquilar una película ingresando su nombre
 - Comprar una película ingresando su nombre
@@ -127,7 +178,7 @@ CineApp es un sistema de gestión de películas con dos tipos de acceso:
 ### Panel de administrador (requiere login)
 - Agregar nuevas películas
 - Editar películas existentes
-- Eliminar películas
+- Eliminar películas (no permite eliminar una película con alquileres/compras asociadas, para no perder el historial)
 - Ver el historial completo de alquileres y compras
 
 ---
@@ -147,3 +198,11 @@ CineApp es un sistema de gestión de películas con dos tipos de acceso:
 | GET | /transacciones | Admin | Ver historial de transacciones |
 
 Las rutas marcadas como **Admin** requieren enviar el token JWT en el header `Authorization: Bearer <token>`.
+
+---
+
+## Notas técnicas
+
+- **Separación de responsabilidades (backend):** las rutas (`routes/`) solo definen los endpoints; la lógica de negocio vive en los controladores (`controllers/`); la conexión a la base de datos está centralizada en un único archivo (`db.js`); la generación y validación de tokens vive en `auth/`; y las validaciones de datos de entrada son middlewares independientes (`middlewares/`).
+- **Separación de responsabilidades (frontend):** las llamadas a la API están aisladas en `api/`; la manipulación del DOM vive en `ui/`; y `main.js` conecta ambas capas respondiendo a los eventos del usuario.
+- **Integridad de datos:** no se puede eliminar una película que ya tiene transacciones (alquileres/compras) registradas, para preservar el historial.
